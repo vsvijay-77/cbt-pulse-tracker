@@ -1,17 +1,17 @@
 import Header from "@/components/Header";
+import Map from "@/components/Map";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin } from "lucide-react";
 
 const trainingLocations = [
-  { state: "Maharashtra", trainings: 45, participants: 1250, coords: { x: 35, y: 45 } },
-  { state: "Kerala", trainings: 38, participants: 980, coords: { x: 30, y: 70 } },
-  { state: "Delhi", trainings: 52, participants: 1450, coords: { x: 45, y: 25 } },
-  { state: "Assam", trainings: 28, participants: 720, coords: { x: 75, y: 20 } },
-  { state: "Tamil Nadu", trainings: 41, participants: 1120, coords: { x: 38, y: 68 } },
-  { state: "Uttar Pradesh", trainings: 55, participants: 1580, coords: { x: 50, y: 30 } },
-  { state: "Gujarat", trainings: 33, participants: 890, coords: { x: 28, y: 38 } },
-  { state: "West Bengal", trainings: 36, participants: 950, coords: { x: 65, y: 35 } },
+  { state: "Maharashtra", trainings: 45, participants: 1250, coords: { lat: 19.7515, lng: 75.7139 } },
+  { state: "Kerala", trainings: 38, participants: 980, coords: { lat: 10.8505, lng: 76.2711 } },
+  { state: "Delhi", trainings: 52, participants: 1450, coords: { lat: 28.7041, lng: 77.1025 } },
+  { state: "Assam", trainings: 28, participants: 720, coords: { lat: 26.2006, lng: 92.9376 } },
+  { state: "Tamil Nadu", trainings: 41, participants: 1120, coords: { lat: 11.1271, lng: 78.6569 } },
+  { state: "Uttar Pradesh", trainings: 55, participants: 1580, coords: { lat: 26.8467, lng: 80.9462 } },
+  { state: "Gujarat", trainings: 33, participants: 890, coords: { lat: 22.2587, lng: 71.1924 } },
+  { state: "West Bengal", trainings: 36, participants: 950, coords: { lat: 22.9868, lng: 87.8550 } },
 ];
 
 const MapView = () => {
@@ -29,45 +29,8 @@ const MapView = () => {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Map Visualization */}
-          <Card className="lg:col-span-2 p-8 shadow-card">
-            <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border-2 border-border overflow-hidden">
-              {/* Simplified India Map Placeholder */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <MapPin className="h-16 w-16 text-primary mx-auto" />
-                  <p className="text-muted-foreground">Interactive GIS map visualization</p>
-                  <p className="text-sm text-muted-foreground">
-                    Integration with mapping services (Mapbox/Google Maps) for detailed geographic data
-                  </p>
-                </div>
-              </div>
-              
-              {/* Location Markers */}
-              {trainingLocations.map((location) => (
-                <div
-                  key={location.state}
-                  className="absolute group cursor-pointer"
-                  style={{
-                    left: `${location.coords.x}%`,
-                    top: `${location.coords.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                  }}
-                >
-                  <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-primary animate-pulse flex items-center justify-center">
-                      <div className="w-4 h-4 rounded-full bg-white"></div>
-                    </div>
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="bg-card border border-border rounded-lg p-3 shadow-lg whitespace-nowrap">
-                        <p className="font-semibold text-sm">{location.state}</p>
-                        <p className="text-xs text-muted-foreground">{location.trainings} trainings</p>
-                        <p className="text-xs text-muted-foreground">{location.participants} participants</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <Card className="lg:col-span-2 p-6 shadow-card">
+            <Map locations={trainingLocations} />
           </Card>
 
           {/* State Statistics */}
