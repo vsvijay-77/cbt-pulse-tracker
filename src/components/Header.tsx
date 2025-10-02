@@ -25,6 +25,16 @@ const Header = () => {
               size="sm"
               className="gap-2"
             >
+              <Shield className="h-4 w-4" />
+              Home
+            </Button>
+          </Link>
+          <Link to="/dashboard">
+            <Button 
+              variant={isActive("/dashboard") ? "default" : "ghost"} 
+              size="sm"
+              className="gap-2"
+            >
               <BarChart3 className="h-4 w-4" />
               Dashboard
             </Button>
