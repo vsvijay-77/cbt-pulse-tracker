@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import StatsCard from "@/components/StatsCard";
 import TrainingChart from "@/components/TrainingChart";
 import RecentTrainings from "@/components/RecentTrainings";
+import UpcomingEvents from "@/components/UpcomingEvents";
 import { Users, GraduationCap, Building2, MapPin, TrendingUp, Award, Target, Calendar } from "lucide-react";
 import heroImage from "@/assets/hero-disaster.jpg";
 import { Card } from "@/components/ui/card";
@@ -167,6 +168,11 @@ const Dashboard = () => {
             <RecentTrainings />
           </div>
         </div>
+      </section>
+
+      {/* Upcoming Events */}
+      <section className="container pb-12">
+        <UpcomingEvents />
       </section>
     </div>
   );
