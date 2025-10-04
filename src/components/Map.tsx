@@ -1,9 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { toast } from 'sonner';
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 interface TrainingLocation {
   state: string;
@@ -18,105 +15,122 @@ interface MapProps {
 
 const Map = ({ locations }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [isMapInitialized, setIsMapInitialized] = useState(false);
-
-  const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken) {
-      toast.error('Please enter your Mapbox token');
-      return;
-    }
-
-    try {
-      mapboxgl.accessToken = mapboxToken;
-      
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [78.9629, 20.5937], // Center of India
-        zoom: 4,
-      });
-
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      map.current.on('load', () => {
-        // Add markers for each training location
-        locations.forEach((location) => {
-          const el = document.createElement('div');
-          el.className = 'marker';
-          el.style.width = '30px';
-          el.style.height = '30px';
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = 'hsl(var(--primary))';
-          el.style.border = '3px solid white';
-          el.style.cursor = 'pointer';
-          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-
-          const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-            `<div style="padding: 8px;">
-              <h4 style="font-weight: bold; margin-bottom: 4px;">${location.state}</h4>
-              <p style="font-size: 12px; margin: 2px 0;">${location.trainings} trainings</p>
-              <p style="font-size: 12px; margin: 2px 0;">${location.participants} participants</p>
-            </div>`
-          );
-
-          new mapboxgl.Marker(el)
-            .setLngLat([location.coords.lng, location.coords.lat])
-            .setPopup(popup)
-            .addTo(map.current!);
-        });
-
-        toast.success('Map loaded successfully!');
-      });
-
-      setIsMapInitialized(true);
-    } catch (error) {
-      toast.error('Failed to initialize map. Please check your token.');
-      console.error(error);
-    }
-  };
+  const map = useRef<L.Map | null>(null);
 
   useEffect(() => {
+    if (!mapContainer.current || map.current) return;
+
+    // Initialize map centered on India
+    map.current = L.map(mapContainer.current).setView([20.5937, 78.9629], 5);
+
+    // Add OpenStreetMap tiles (free, no token required)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map.current);
+
+    // Custom marker icon
+    const createCustomIcon = (size: number) => {
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `
+          <div style="
+            width: ${size}px;
+            height: ${size}px;
+            background: hsl(215 85% 45%);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+          "></div>
+        `,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size / 2],
+      });
+    };
+
+    // Add markers for each training location
+    locations.forEach((location) => {
+      const markerSize = Math.min(40, 20 + location.trainings / 3);
+      
+      const marker = L.marker([location.coords.lat, location.coords.lng], {
+        icon: createCustomIcon(markerSize)
+      }).addTo(map.current!);
+
+      // Create popup content
+      const popupContent = `
+        <div style="font-family: system-ui; padding: 8px;">
+          <h4 style="font-weight: 600; font-size: 14px; margin: 0 0 8px 0; color: hsl(215 85% 25%);">${location.state}</h4>
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: hsl(215 15% 45%);">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(215 85% 45%)" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span><strong>${location.trainings}</strong> Trainings</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="hsl(185 65% 45%)" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span><strong>${location.participants}</strong> Participants</span>
+            </div>
+          </div>
+        </div>
+      `;
+
+      marker.bindPopup(popupContent, {
+        maxWidth: 250,
+        className: 'custom-popup'
+      });
+    });
+
+    // Add custom styles for animations
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+      .custom-marker {
+        background: transparent !important;
+        border: none !important;
+      }
+      .custom-popup .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      }
+      .custom-popup .leaflet-popup-tip {
+        background: white;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Cleanup
     return () => {
       map.current?.remove();
+      map.current = null;
     };
-  }, []);
-
-  if (!isMapInitialized) {
-    return (
-      <div className="flex flex-col gap-4 p-8 bg-card rounded-lg border border-border">
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Setup Mapbox</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Enter your Mapbox public token to view the interactive map.{' '}
-            <a 
-              href="https://mapbox.com/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              Get your token here
-            </a>
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Input
-            type="text"
-            placeholder="pk.eyJ1IjoiZXhhbXBsZS..."
-            value={mapboxToken}
-            onChange={(e) => setMapboxToken(e.target.value)}
-            className="flex-1"
-          />
-          <Button onClick={initializeMap}>Load Map</Button>
-        </div>
-      </div>
-    );
-  }
+  }, [locations]);
 
   return (
-    <div className="relative w-full h-full min-h-[500px]">
-      <div ref={mapContainer} className="absolute inset-0 rounded-lg" />
+    <div className="relative w-full h-full min-h-[500px] rounded-lg overflow-hidden shadow-card">
+      <div ref={mapContainer} className="absolute inset-0" />
+      <div className="absolute top-4 left-4 bg-card/95 backdrop-blur px-4 py-2 rounded-lg shadow-lg border border-border z-[1000]">
+        <p className="text-sm font-semibold text-foreground">India Training Coverage Map</p>
+        <p className="text-xs text-muted-foreground">Click markers for details</p>
+      </div>
     </div>
   );
 };
