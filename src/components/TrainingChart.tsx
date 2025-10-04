@@ -13,8 +13,13 @@ const data = [
 const TrainingChart = () => {
   return (
     <Card className="p-6 shadow-card">
-      <h3 className="text-lg font-semibold text-foreground mb-4">Training Activity Trends</h3>
-      <ResponsiveContainer width="100%" height={300}>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-semibold text-foreground">Training Activity Trends</h3>
+          <p className="text-sm text-muted-foreground mt-1">Monthly trainings and participants overview</p>
+        </div>
+      </div>
+      <ResponsiveContainer width="100%" height={350}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis 

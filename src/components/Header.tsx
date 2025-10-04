@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, BarChart3, MapPin, FileText, Database } from "lucide-react";
+import { Shield, BarChart3, MapPin, FileText } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
@@ -37,16 +37,6 @@ const Header = () => {
             >
               <BarChart3 className="h-4 w-4" />
               Dashboard
-            </Button>
-          </Link>
-          <Link to="/training-entry">
-            <Button 
-              variant={isActive("/training-entry") ? "default" : "ghost"} 
-              size="sm"
-              className="gap-2"
-            >
-              <Database className="h-4 w-4" />
-              Enter Training
             </Button>
           </Link>
           <Link to="/map">
