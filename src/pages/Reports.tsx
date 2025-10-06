@@ -2,7 +2,9 @@ import Header from "@/components/Header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Download, Calendar, Filter } from "lucide-react";
+import { FileText, Download, Calendar, Filter, CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const reportTemplates = [
   {
@@ -44,6 +46,29 @@ const reportTemplates = [
 ];
 
 const Reports = () => {
+  const [generatedReports, setGeneratedReports] = useState<{ [key: number]: any }>({});
+  const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [selectedState, setSelectedState] = useState("all");
+
+  const handleGenerate = (reportId: number, reportTitle: string) => {
+    // Simulate report generation
+    const mockData = {
+      1: { trainings: 52, participants: 1450, partners: 23, coverage: "87%" },
+      2: { trainings: 156, participants: 4280, topState: "Maharashtra", avgScore: "8.5/10" },
+      3: { activePartners: 12, trainings: 45, satisfaction: "92%" },
+      4: { response: "35%", preparedness: "42%", recovery: "23%" },
+      5: { impact: "High", reach: "12,500+", effectiveness: "89%" },
+      6: { lowCoverage: 8, recommendations: 15, priority: "High" }
+    };
+
+    setGeneratedReports(prev => ({ ...prev, [reportId]: mockData[reportId as keyof typeof mockData] }));
+    toast.success(`${reportTitle} generated successfully!`);
+  };
+
+  const handleDownload = (reportTitle: string) => {
+    toast.success(`Downloading ${reportTitle}...`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -66,7 +91,7 @@ const Reports = () => {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Time Period</label>
-              <Select>
+              <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select period" />
                 </SelectTrigger>
@@ -81,7 +106,7 @@ const Reports = () => {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">State/UT</label>
-              <Select>
+              <Select value={selectedState} onValueChange={setSelectedState}>
                 <SelectTrigger>
                   <SelectValue placeholder="All states" />
                 </SelectTrigger>
@@ -140,12 +165,38 @@ const Reports = () => {
                 </div>
               </div>
               
+              {generatedReports[report.id] && (
+                <div className="mb-4 p-4 rounded-lg bg-success/10 border border-success/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="h-4 w-4 text-success" />
+                    <span className="text-sm font-medium text-success">Report Generated</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {Object.entries(generatedReports[report.id]).map(([key, value]) => (
+                      <div key={key}>
+                        <span className="text-muted-foreground capitalize">{key}: </span>
+                        <span className="font-semibold text-foreground">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="flex gap-2">
-                <Button className="flex-1 gap-2" size="sm">
+                <Button 
+                  className="flex-1 gap-2" 
+                  size="sm"
+                  onClick={() => handleGenerate(report.id, report.title)}
+                >
                   <Calendar className="h-4 w-4" />
                   Generate
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDownload(report.title)}
+                  disabled={!generatedReports[report.id]}
+                >
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
