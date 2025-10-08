@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Shield, BarChart3, MapPin, FileText, CalendarDays } from "lucide-react";
+import { Shield, BarChart3, MapPin, FileText, CalendarDays, Target } from "lucide-react";
 
 const Header = () => {
   const location = useLocation();
@@ -29,6 +29,16 @@ const Header = () => {
               Home
             </Button>
           </Link>
+          <Link to="/activities">
+            <Button 
+              variant={isActive("/activities") ? "default" : "ghost"} 
+              size="sm"
+              className="gap-2"
+            >
+              <CalendarDays className="h-4 w-4" />
+              Activities
+            </Button>
+          </Link>
           <Link to="/dashboard">
             <Button 
               variant={isActive("/dashboard") ? "default" : "ghost"} 
@@ -37,6 +47,16 @@ const Header = () => {
             >
               <BarChart3 className="h-4 w-4" />
               Dashboard
+            </Button>
+          </Link>
+          <Link to="/impacts">
+            <Button 
+              variant={isActive("/impacts") ? "default" : "ghost"} 
+              size="sm"
+              className="gap-2"
+            >
+              <Target className="h-4 w-4" />
+              Impacts
             </Button>
           </Link>
           <Link to="/map">
@@ -57,16 +77,6 @@ const Header = () => {
             >
               <FileText className="h-4 w-4" />
               Reports
-            </Button>
-          </Link>
-          <Link to="/activities">
-            <Button 
-              variant={isActive("/activities") ? "default" : "ghost"} 
-              size="sm"
-              className="gap-2"
-            >
-              <CalendarDays className="h-4 w-4" />
-              Activities
             </Button>
           </Link>
         </nav>
