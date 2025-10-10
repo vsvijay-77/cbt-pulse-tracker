@@ -10,6 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Upload, X } from "lucide-react";
 
 const trainingSchema = z.object({
   trainingTitle: z.string().min(1, "Training title is required").max(200),
@@ -20,14 +22,21 @@ const trainingSchema = z.object({
   participants: z.coerce.number().min(1, "At least 1 participant is required").max(10000),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
+  venue: z.string().min(1, "Venue is required").max(200),
+  instructor: z.string().min(1, "Instructor name is required").max(100),
+  contactEmail: z.string().email("Invalid email").max(100),
+  contactPhone: z.string().min(10, "Invalid phone number").max(15),
   description: z.string().min(10, "Description must be at least 10 characters").max(2000),
   outcomes: z.string().max(2000).optional().or(z.literal("")),
+  materials: z.string().max(500).optional().or(z.literal("")),
 });
 
 type TrainingFormData = z.infer<typeof trainingSchema>;
 
 const TrainingEntry = () => {
   const navigate = useNavigate();
+  const [photos, setPhotos] = useState<string[]>([]);
+  
   const form = useForm<TrainingFormData>({
     resolver: zodResolver(trainingSchema),
     defaultValues: {
@@ -39,10 +48,34 @@ const TrainingEntry = () => {
       participants: 0,
       startDate: "",
       endDate: "",
+      venue: "",
+      instructor: "",
+      contactEmail: "",
+      contactPhone: "",
       description: "",
       outcomes: "",
+      materials: "",
     },
   });
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setPhotos((prev) => [...prev, event.target!.result as string]);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const onSubmit = async (data: TrainingFormData) => {
     try {
@@ -51,6 +84,7 @@ const TrainingEntry = () => {
       const newTraining = {
         id: Date.now().toString(),
         ...data,
+        photos,
         submittedAt: new Date().toISOString(),
         status: "Completed",
       };
@@ -60,6 +94,7 @@ const TrainingEntry = () => {
       
       toast.success("Training data submitted successfully!");
       form.reset();
+      setPhotos([]);
       
       setTimeout(() => {
         navigate("/activities");
@@ -237,6 +272,62 @@ const TrainingEntry = () => {
                       </FormItem>
                     )}
                   />
+
+                  <FormField
+                    control={form.control}
+                    name="venue"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Venue</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., District Training Center" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="instructor"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instructor Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Dr. Rajesh Kumar" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contactEmail"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="trainer@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="contactPhone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact Phone</FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="+91 9876543210" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
 
                 <FormField
@@ -274,6 +365,74 @@ const TrainingEntry = () => {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="materials"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Training Materials Used (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="List materials, equipment, or resources used"
+                          rows={2}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-4">
+                  <div>
+                    <FormLabel>Training Photos</FormLabel>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Upload photos from the training session
+                    </p>
+                    <div className="flex flex-col gap-4">
+                      <label className="cursor-pointer">
+                        <div className="border-2 border-dashed border-border rounded-lg p-6 hover:border-primary transition-colors flex flex-col items-center gap-2">
+                          <Upload className="w-8 h-8 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">
+                            Click to upload photos
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Supports JPG, PNG up to 5MB each
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={handlePhotoUpload}
+                        />
+                      </label>
+
+                      {photos.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {photos.map((photo, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={photo}
+                                alt={`Training photo ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removePhoto(index)}
+                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
                 <div className="flex gap-4 pt-4">
                   <Button 
