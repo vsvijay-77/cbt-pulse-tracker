@@ -9,6 +9,7 @@ import MapView from "./pages/MapView";
 import Reports from "./pages/Reports";
 import Activities from "./pages/Activities";
 import Impacts from "./pages/Impacts";
+import TrainingEntry from "./pages/TrainingEntry";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
           <Route path="/reports" element={<Reports />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/impacts" element={<Impacts />} />
+          <Route path="/training-entry" element={<TrainingEntry />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
