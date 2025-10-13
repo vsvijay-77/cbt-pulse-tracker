@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, BarChart3, MapPin, FileText, CalendarDays, Target } from "lucide-react";
-import ndmaLogo from "@/assets/ndma-logo.png";
 
 const Header = () => {
   const location = useLocation();
@@ -11,10 +10,10 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={ndmaLogo} alt="NDMA Logo" className="h-12 w-12" />
+        <Link to="/" className="flex items-center gap-2">
+          <Shield className="h-8 w-8 text-primary" />
           <div>
-            <h1 className="text-xl font-bold text-foreground">NDMA Training Management</h1>
+            <h1 className="text-xl font-bold text-foreground">NDMA Training Monitor</h1>
             <p className="text-xs text-muted-foreground">Capacity Building & Training Division</p>
           </div>
         </Link>
