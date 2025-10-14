@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Shield, Target, Users, TrendingUp, MapPin, FileText, Database, BarChart3 } from "lucide-react";
 import heroImage from "@/assets/hero-disaster.jpg";
-import ndmaLogo from "@/assets/ndma-logo.png";
 
 const Home = () => {
   return (
@@ -20,7 +19,6 @@ const Home = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-secondary/80"></div>
         </div>
         <div className="relative z-10 container text-center text-white space-y-6 px-6">
-          <img src={ndmaLogo} alt="NDMA Logo" className="h-24 w-24 mx-auto mb-4 object-contain" />
           <h1 className="text-5xl lg:text-6xl font-bold">
             NDMA Training Monitor
           </h1>
