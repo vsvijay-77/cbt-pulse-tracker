@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Calendar, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { MapPin, Users, Calendar, Building2, Sparkles, TrendingUp, Target, AlertCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import training1 from "@/assets/training-1.jpg";
 import training2 from "@/assets/training-2.jpg";
 import training3 from "@/assets/training-3.jpg";
@@ -365,7 +370,26 @@ const activities = [
   }
 ];
 
+interface SummaryData {
+  summary: string;
+  readinessScore: number;
+  readinessAnalysis: string;
+  impactAssessment: {
+    overallReach: string;
+    geographicCoverage: string;
+    trainingDiversity: string;
+    resourceUtilization: string;
+    strengths: string[];
+    improvements: string[];
+  };
+}
+
 const TotalActivities = () => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
+  const { toast } = useToast();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Completed":
@@ -379,17 +403,154 @@ const TotalActivities = () => {
     }
   };
 
+  const generateSummary = async () => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-activities-summary', {
+        body: { activities }
+      });
+
+      if (error) throw error;
+
+      setSummaryData(data);
+      setShowSummary(true);
+      toast({
+        title: "Summary Generated",
+        description: "Successfully analyzed all activities",
+      });
+    } catch (error) {
+      console.error("Error generating summary:", error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate summary",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const getReadinessColor = (score: number) => {
+    if (score >= 80) return "text-success";
+    if (score >= 60) return "text-warning";
+    return "text-destructive";
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Total Activities</h2>
           <p className="text-muted-foreground mt-1">Comprehensive overview of all training activities</p>
         </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          {activities.length} Activities
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            {activities.length} Activities
+          </Badge>
+          <Button 
+            onClick={generateSummary}
+            disabled={isGenerating}
+            className="gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            {isGenerating ? "Generating..." : "Generate Summary"}
+          </Button>
+        </div>
       </div>
+
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Activities Analysis & Summary</DialogTitle>
+          </DialogHeader>
+          
+          {summaryData && (
+            <div className="space-y-6">
+              {/* Readiness Score */}
+              <Card className="p-6 bg-gradient-to-br from-primary/5 to-secondary/5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Readiness Score</p>
+                    <p className={`text-5xl font-bold ${getReadinessColor(summaryData.readinessScore)}`}>
+                      {summaryData.readinessScore}
+                      <span className="text-2xl">/100</span>
+                    </p>
+                  </div>
+                  <Target className="h-16 w-16 text-primary opacity-20" />
+                </div>
+                <p className="mt-4 text-sm text-foreground">{summaryData.readinessAnalysis}</p>
+              </Card>
+
+              {/* Summary */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Executive Summary
+                </h3>
+                <p className="text-foreground leading-relaxed whitespace-pre-line">{summaryData.summary}</p>
+              </div>
+
+              {/* Impact Assessment */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Impact Assessment
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-2 text-foreground">Overall Reach</h4>
+                    <p className="text-sm text-muted-foreground">{summaryData.impactAssessment.overallReach}</p>
+                  </Card>
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-2 text-foreground">Geographic Coverage</h4>
+                    <p className="text-sm text-muted-foreground">{summaryData.impactAssessment.geographicCoverage}</p>
+                  </Card>
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-2 text-foreground">Training Diversity</h4>
+                    <p className="text-sm text-muted-foreground">{summaryData.impactAssessment.trainingDiversity}</p>
+                  </Card>
+                  <Card className="p-4">
+                    <h4 className="font-semibold mb-2 text-foreground">Resource Utilization</h4>
+                    <p className="text-sm text-muted-foreground">{summaryData.impactAssessment.resourceUtilization}</p>
+                  </Card>
+                </div>
+              </div>
+
+              {/* Strengths */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-success">
+                  <TrendingUp className="h-5 w-5" />
+                  Key Strengths
+                </h3>
+                <ul className="space-y-2">
+                  {summaryData.impactAssessment.strengths.map((strength, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Badge variant="outline" className="mt-1 bg-success/10">✓</Badge>
+                      <span className="text-foreground">{strength}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Areas for Improvement */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-warning">
+                  <AlertCircle className="h-5 w-5" />
+                  Areas for Improvement
+                </h3>
+                <ul className="space-y-2">
+                  {summaryData.impactAssessment.improvements.map((improvement, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Badge variant="outline" className="mt-1 bg-warning/10">→</Badge>
+                      <span className="text-foreground">{improvement}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {activities.map((activity) => (
